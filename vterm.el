@@ -1542,8 +1542,12 @@ If not found in PATH, look in the vterm.el directory."
           (run-with-timer
            vterm-timer-delay nil
            (lambda (proc w h)
-             (cancel-timer vterm--conpty-proxy-resize-timer)
-             (setq vterm--conpty-proxy-resize-timer nil)
+             ;; if vterm failed to start (such as shell is not found),
+             ;; buffer wil be killed and timer will be nil, it needs
+             ;; to check.
+             (when vterm--conpty-proxy-resize-timer
+               (cancel-timer vterm--conpty-proxy-resize-timer)
+               (setq vterm--conpty-proxy-resize-timer nil))
              (vterm--conpty-proxy-resize proc w h))
            vterm--process width height)))
   (cons width height))
