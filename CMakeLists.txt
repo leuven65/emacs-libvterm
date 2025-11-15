@@ -95,6 +95,7 @@ if(WIN32)
   ExternalProject_add(conpty-proxy
     GIT_REPOSITORY https://github.com/xhcoding/conpty-proxy.git
     GIT_TAG v1.0.1
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}
     INSTALL_COMMAND
     COMMAND ${CMAKE_COMMAND} -E copy
