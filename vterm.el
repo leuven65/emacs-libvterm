@@ -1497,34 +1497,38 @@ If not found in PATH, look in the vterm.el directory."
 (defun vterm--conpty-proxy-make-process (width height)
   "Make conpty proxy process."
   (let* ((conpty-id (format "econpty_%s_%s" (format-time-string "%s") (emacs-pid)))
-         conpty-process)
-    (setq conpty-process
-          (make-process
-           :name "vterm"
-           :buffer (current-buffer)
-           :command `(,(vterm--conpty-proxy-path) "new"
-                      ,conpty-id ,(int-to-string width) ,(int-to-string height) ,(vterm--get-shell))
-           :coding 'no-conversion
-           :file-handler t
-           :filter #'vterm--filter
-           ;; The sentinel is needed if there are exit functions or if
-           ;; vterm-kill-buffer-on-exit is set to t.  In this latter case,
-           ;; vterm--sentinel will kill the buffer
-           :sentinel (when (or vterm-exit-functions
-                               vterm-kill-buffer-on-exit)
-                       #'vterm--sentinel)))
-
+         (conpty-process (make-process
+                          :name "vterm"
+                          :buffer (current-buffer)
+                          :command (list
+                                    (vterm--conpty-proxy-path)
+                                    "new"
+                                    conpty-id
+                                    (number-to-string width)
+                                    (number-to-string height)
+                                    (vterm--get-shell))
+                          :coding 'no-conversion
+                          :file-handler t
+                          :filter #'vterm--filter
+                          ;; The sentinel is needed if there are exit functions or if
+                          ;; vterm-kill-buffer-on-exit is set to t.  In this latter case,
+                          ;; vterm--sentinel will kill the buffer
+                          :sentinel (when (or vterm-exit-functions
+                                              vterm-kill-buffer-on-exit)
+                                      #'vterm--sentinel))))
     (process-put conpty-process 'conpty-id conpty-id)
     conpty-process))
 
 (defun vterm--conpty-proxy-resize(proc width height)
   "Call conpty proxy resize command."
   ;; debounce creating new process by using timer
-  (let ((conpty-id (process-get proc 'conpty-id)))
-    (make-process
-     :name "vterm-resize"
-     :command `(,(vterm--conpty-proxy-path) "resize"
-                ,conpty-id ,(int-to-string width) ,(int-to-string height))))
+  (make-process
+   :name "vterm-resize"
+   :command (list (vterm--conpty-proxy-path)
+                  "resize"
+                  (process-get proc 'conpty-id)
+                  (number-to-string width)
+                  (number-to-string height)))
   (cons width height))
 
 (defvar vterm--conpty-proxy-resize-timer nil
@@ -1532,13 +1536,16 @@ If not found in PATH, look in the vterm.el directory."
 
 (defun vterm--conpty-proxy-debounce-resize (width height)
   "Debounce conpty proxy resize calls."
-  (when vterm--conpty-proxy-resize-timer
-    (cancel-timer vterm--conpty-proxy-resize-timer))
-  (setq vterm--conpty-proxy-resize-timer
-        (run-with-timer
-         vterm-timer-delay nil
-         (lambda (proc w h) (vterm--conpty-proxy-resize proc w h))
-         vterm--process width height))
+  (if (timerp vterm--conpty-proxy-resize-timer)
+      (timer-set-time vterm--conpty-proxy-resize-timer (timer-relative-time nil vterm-timer-delay))
+    (setq vterm--conpty-proxy-resize-timer
+          (run-with-timer
+           vterm-timer-delay nil
+           (lambda (proc w h)
+             (cancel-timer vterm--conpty-proxy-resize-timer)
+             (setq vterm--conpty-proxy-resize-timer nil)
+             (vterm--conpty-proxy-resize proc w h))
+           vterm--process width height)))
   (cons width height))
 
 ;;; Entry Points
