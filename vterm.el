@@ -1531,7 +1531,7 @@ If not found in PATH, look in the vterm.el directory."
                   (number-to-string height)))
   (cons width height))
 
-(defvar vterm--conpty-proxy-resize-timer nil
+(defvar-local vterm--conpty-proxy-resize-timer nil
   "Timer for conpty proxy resize.")
 
 (defun vterm--conpty-proxy-debounce-resize (width height)
