@@ -1176,11 +1176,11 @@ static VTermParserCallbacks parser_callbacks = {
 };
 #else
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wbitfield-constant-conversion"
-/* -1 is represented as ~0 in the bit field. */
-static const size_t invalid_string_fragment_len = (VTermStringFragment){.len = (size_t)-1}.len;
-#pragma clang diagnostic pop
+/* #pragma clang diagnostic push */
+/* #pragma clang diagnostic ignored "-Wbitfield-constant-conversion" */
+/* /\* -1 is represented as ~0 in the bit field. *\/ */
+/* static const size_t invalid_string_fragment_len = (VTermStringFragment){.len = (size_t)-1}.len; */
+/* #pragma clang diagnostic pop */
 
 static int osc_callback(int cmd, VTermStringFragment frag, void *user) {
   /* osc_callback (OSC = Operating System Command) */
@@ -1206,6 +1206,7 @@ static int osc_callback(int cmd, VTermStringFragment frag, void *user) {
 
   /* frag.len can be -1 (invalid) for sequences such as "\033];\033". https://github.com/akermu/emacs-libvterm/issues/729 */
   /* This might be a bug in libvterm. */
+  const size_t invalid_string_fragment_len = (VTermStringFragment){.len = (size_t)-1}.len;  
   if (frag.len != invalid_string_fragment_len) {
     term->cmd_buffer = concat(term->cmd_buffer, frag.str, frag.len, true);
   }
