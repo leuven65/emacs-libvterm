@@ -55,14 +55,14 @@ jobs:
           cmake --build build
           zip vterm-x86_64-windows.zip *.dll *.exe
 
-      - name: Create release
-        uses: ncipollo/release-action@v1
-        with:
-          # tag: v${{ env.version }}
-          name: ${{ env.version }}
-          draft: false
-          prerelease: false
-          artifactErrorsFailBuild: true
-          artifacts: vterm-x86_64-windows.zip
-          artifactContentType: application/zip
-          token: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Create release
+      #   uses: ncipollo/release-action@v1
+      #   with:
+      #     tag: v${{ env.version }}
+      #     name: ${{ env.version }}
+      #     draft: false
+      #     prerelease: false
+      #     artifactErrorsFailBuild: true
+      #     artifacts: vterm-x86_64-windows.zip
+      #     artifactContentType: application/zip
+      #     token: ${{ secrets.GITHUB_TOKEN }}
